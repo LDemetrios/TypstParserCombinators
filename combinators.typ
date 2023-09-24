@@ -38,13 +38,10 @@
 }
 
 // Basic result manipulations
-#let result(value, tail) = (true, value, tail)
-#let fail-r() = (false, none, none)
-#let valid(res) = res.at(0)
-#let value(res) = res.at(1)
-#let tail(res) = res.at(2)
-#let map-result(f) = res => if valid(res) {
-  result(f(value(res)), tail(res))
+#let result(value, tail) = (valid:true, value:value, tail:tail)
+#let fail-r = (valid:false, value:none, tail:none)
+#let map-result(f) = res => if res.valid {
+  result(f(res.value), res.tail)
 } else { res }
 
 // Simple parsers
@@ -52,7 +49,7 @@
 #let char-p(predicate) = s => {
   if (s.len() > 0 and predicate(s.first())) {
     result(s.first(), s.slice(1))
-  } else { fail-r() }
+  } else { fail-r }
 }
 #let char-list(s) = char-p(c => c in s)
 #let char-not-p(predicate) = char-p(c => not predicate(c))
@@ -61,36 +58,36 @@
   if (inp.starts-with(s)) {
     result(s, inp.slice(s.len()))
   } else {
-    fail-r()
+    fail-r
   }
 }
 #let exactly-as(s, v) = inp => {
   if (inp.starts-with(s)) {
     result(v, inp.slice(s.len()))
   } else {
-    fail-r()
+    fail-r
   }
 }
 
 // Basic combinators
 #let combine(f, a, b) = s => {
   let ar = force(a)(s)
-  if valid(ar) {
-    let br = force(b)(tail(ar))
-    map-result(valueb => f(value(ar), valueb))(br)
+  if ar.valid {
+    let br = force(b)(ar.tail)
+    map-result(valueb => f(ar.value, valueb))(br)
   } else { ar }
 }
 
 #let either(a, b) = s => {
   let ar = force(a)(s)
-  if valid(ar) { ar } else { force(b)(s) }
+  if ar.valid { ar } else { force(b)(s) }
 }
 
 #let map-p(f, parser) = comp(map-result(f), parser)
 
 // Ignoring
 #let ignored = "abracadabra"
-#let ignore = partial(map-p, constantly(ignored))
+#let ignore(parser) = map-p(constantly(ignored), parser)
 #let iconj(coll, value) = if (value == ignored) {
   coll
 } else {
@@ -99,8 +96,8 @@
 
 // Sequences
 #let seq(..parsers) = reduce_v(partial(combine, iconj), noparse(()), parsers.pos())
-#let seqf(f, ..parsers) = map-p(partial(apply, f), apply(seq, parsers.pos()))
-#let seqn(n, ..parsers) = apply(seqf, (..vs) => vs.pos().at(n), parsers.pos())
+#let seqf(f, ..parsers) = map-p(partial(apply, f), seq(..parsers))
+#let seqn(n, ..parsers) = seqf((..vs) => vs.pos().at(n), ..parsers)
 
 // Grammar constructions
 #let or-p(parser, ..parsers) = reduce_v(either, parser, parsers.pos())
@@ -109,9 +106,9 @@
   let coll = ()
   let rem = s
   let res = parser(s)
-  while valid(res) {
-    coll.push(value(res))
-    rem = tail(res)
+  while res.valid {
+    coll.push(res.value)
+    rem = res.tail
     res = parser(rem)
   }
   result(coll, rem)
@@ -123,12 +120,12 @@
 
 #let whole_parser(parser) = s => {
   let res = parser(s)
-  if not valid(res) {
+  if not res.valid {
     "Couldn't parse: " + s
-  } else if "" != tail(res) {
-    "Remained: " + tail(res)
+  } else if "" != res.tail {
+    "Remained: " + res.tail
   } else {
-    value(res)
+    res.value
   }
 }
 

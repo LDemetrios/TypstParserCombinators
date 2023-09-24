@@ -1,4 +1,4 @@
-#import "combinators.typ" : force, delay, comp, partial, cons, conj, apply, constantly, stringify, reduce, reduce_v, result, fail-r, map-result, noparse, char-p, char-list, char-not-p, char-not-list, exactly, exactly-as, combine, either, map-p, ignore, iconj, seq, seqf, seqn, or-p, opt, star, plus, stringifing, whole_parser, char-regex-p, skip
+#import "release-combinators.typ" : force, delay, comp, partial, cons, conj, apply, constantly, stringify, reduce, reduce_v, result, fail-r, map-result, noparse, char-p, char-list, char-not-p, char-not-list, exactly, exactly-as, combine, either, map-p, ignore, iconj, seq, seqf, seqn, or-p, opt, star, plus, stringifing, whole_parser, char-regex-p, skip
 
 #let test(parser, inputs) = {
   for input in inputs {
