@@ -1,1 +1,1 @@
-Proof of concept of parser combinators in typstion
+Proof of concept of parser combinators in Typst.
